@@ -1,0 +1,3 @@
+src/webping/bin*
+src/webping/obj*
+*.suo
