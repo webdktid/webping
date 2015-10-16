@@ -14,7 +14,7 @@ namespace webping
             try
             {
                 string url = args[0];
-                if (!url.ToLower().StartsWith("http://"))
+                if (!url.ToLower().StartsWith("http"))
                     url = "http://" + url;
 
                 if (CheckForArguments(args, url))
