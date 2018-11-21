@@ -1,3 +1,4 @@
 src/webping/bin*
 src/webping/obj*
 *.suo
+/src/.vs/*

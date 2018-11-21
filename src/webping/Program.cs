@@ -11,9 +11,26 @@ namespace webping
     {
         static void Main(string[] args)
         {
+
+            if (args.Length < 2)
+            {
+                Console.WriteLine("Syntax; ");
+                Console.WriteLine("webping <url> <count=4>");
+            }
+
+
             try
             {
+
                 string url = args[0];
+                int count = 4;
+
+                if (args[1] != null)
+                {
+                    count = Convert.ToInt32(args[1]);
+                }
+
+
                 if (!url.ToLower().StartsWith("http"))
                     url = "http://" + url;
 
@@ -21,13 +38,13 @@ namespace webping
                     return;
 
 
-                if (args.Contains("-t"))
+                if (args.Contains("t"))
                 {
                     PingUntilBreak(url);
                 }
                 else
                 {
-                    PingCount(url, 4);
+                    PingCount(url, count);
                 }
             }
             catch (Exception ex)
@@ -76,14 +93,15 @@ namespace webping
         private static void DoSinglePing(string url)
         {
             var sw = new Stopwatch();
-            var client = new WebClient();
+            var client = new WebClientWithTimeout();
 
             sw.Reset();
             sw.Start();
+            
             string content = client.DownloadString(url);
             sw.Stop();
 
-            string msg = string.Format("Reply from {0}: bytes {1} time {2} ms", url, content.Length,sw.ElapsedMilliseconds);
+            string msg = $"Reply from {url}: bytes {content.Length} time {sw.ElapsedMilliseconds} ms";
             Console.WriteLine(msg);
 
             if (sw.ElapsedMilliseconds < 1000)
