@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 
 namespace webping
@@ -12,12 +13,16 @@ namespace webping
         static void Main(string[] args)
         {
 
-            if (args.Length < 2)
+            if (args.Length < 1)
             {
                 Console.WriteLine("Syntax; ");
-                Console.WriteLine("webping <url> <count=4>");
+                Console.WriteLine("webping <url> <count>");
+                Console.WriteLine("-1 Ping the specified host until stopped.");
+
+                return;
             }
 
+          
 
             try
             {
@@ -25,7 +30,7 @@ namespace webping
                 string url = args[0];
                 int count = 4;
 
-                if (args[1] != null)
+                if (args.Length>1)
                 {
                     count = Convert.ToInt32(args[1]);
                 }
@@ -84,29 +89,50 @@ namespace webping
 
         private static void PingCount(string url, int count)
         {
+            if (count == -1)
+            {
+                while (true)
+                {
+                    DoSinglePing(url);
+                }
+            }
+
+
             for (int i = 0; i < count; i++)
             {
                 DoSinglePing(url);
             }
         }
 
-        private static void DoSinglePing(string url)
+
+
+        private static long GetHead(string url)
         {
             var sw = new Stopwatch();
-            var client = new WebClientWithTimeout();
-
             sw.Reset();
             sw.Start();
-            
-            string content = client.DownloadString(url);
+
+            HttpClient httpClient = new HttpClient();
+
+            HttpRequestMessage request =  new HttpRequestMessage(HttpMethod.Head,new Uri(url));
+
+            HttpResponseMessage response = httpClient.SendAsync(request).Result;
             sw.Stop();
-
-            string msg = $"Reply from {url}: bytes {content.Length} time {sw.ElapsedMilliseconds} ms";
+            
+            string msg = $"Reply from {url}: code: {response.StatusCode} time {sw.ElapsedMilliseconds} ms";
             Console.WriteLine(msg);
+            return sw.ElapsedMilliseconds;
+        }
 
-            if (sw.ElapsedMilliseconds < 1000)
+
+
+        private static void DoSinglePing(string url)
+        {
+            var msec = GetHead(url);
+
+            if (msec  < 1000)
             {
-                Thread.Sleep(1000 - (int)sw.ElapsedMilliseconds);
+                Thread.Sleep(1000 - (int)msec);
             }
 
         }
